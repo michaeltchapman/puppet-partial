@@ -1,7 +1,7 @@
 # Select and show a list of resources of a given type.
 Puppet::Face.define(:partial, '0.0.1') do
   action :image_build do
-    summary "Retrieve a catalog and filter it for image building resources like packages and repos"
+    summary "Retrieve a catalog, filter it for image building resources like packages and repos, and apply it"
 
     option '--outfile OUTFILE' do
       summary 'Where to place a puppet manifest that can be applied'
@@ -44,54 +44,7 @@ Puppet::Face.define(:partial, '0.0.1') do
       end 
       tcat.finalize
       transaction = tcat.apply()
-      tcat.resources
-    end
-
-    when_rendering :console do |value|
-      #return "derp"
-      if value.nil? then
-        "no matching resources found"
-      else
-        str = ''
-        packages = []
-        repos    = []
-	    value.each do |resource|
-          if resource.type.to_s == 'Package' then
-            packages.push(resource)
-            puts resource.type
-          elsif resource.type.to_s == 'Yumrepo' then
-            repos.push(resource)
-            puts resource.type
-          else 
-            puts resource.type
-          end
-        end
-
-        str += "\#Repos: \n"
-        repos.each do |repo|
-          str += "yumrepo {'#{repo.title}':\n"
-          if repo[:baseurl] then
-            str += "  baseurl => '#{repo[:baseurl]}',\n"
-          end
-          str += "  before => Anchor['break']\n"
-          str += "}\n"
-          str += "\n"
-        end
-
-        str += "\#Anchor: \n"
-        str += "anchor {'break':}\n"
-        str += "\n"
-
-        str += "\#Packages: \n"
-        packages.each do |pkg|
-          str += "package {'#{pkg.title}':\n"
-          str += "  ensure => 'present',\n"
-          str += "  require => Anchor['break']\n"
-          str += "}\n"
-          str += "\n"
-        end
-        str
-      end
+      return 
     end
   end
 end
