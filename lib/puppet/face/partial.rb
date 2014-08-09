@@ -29,84 +29,41 @@ Puppet::Face.define(:partial, '0.0.1') do
     EOT
 
     when_invoked do |host, options|
-      # REVISIT: Eventually, type should have a default value that triggers
-      # the non-specific behaviour.  For now, though, this will do.
-      # --daniel 2011-05-03
       catalog = Puppet::Resource::Catalog.indirection.find(host)
 
-      img = catalog.resources.reject! { |res|
-        (!(res.type.downcase == 'package' || res.type.downcase == 'yumrepo'))
-      }
-
-      hash = catalog.to_data_hash
-
-      # This fails! WTF!?
-      #tcat = Puppet::Resource::Catalog.from_data_hash(hash)
-
-      tcat = Puppet::Resource::Catalog.new('test')
+      tcat = Puppet::Resource::Catalog.new('test', Puppet::Node::Environment.new('production'))
+      tcat.make_default_resources
       anchor = tcat.create_resource('anchor', {'title' => 'break'})
-      #thash = tcat.to_data_hash
-      #puts thash.to_s
 
-      puts '#TAGS'
-      if !hash[:tags].nil? then
-        hash[:tags].each do |key, value| 
-          puts key.to_s
-          puts value.to_s
+      catalog.resources.each do |res|
+        if res.type.downcase == 'package' then
+          tcat.create_resource('package', {'title' => res['name'], 'require' => 'Anchor[break]'})
+        elsif res.type.downcase == 'yumrepo'
+          tcat.create_resource('yumrepo', {'title' => res.title, 'name' => res['name'], 'baseurl' => res['baseurl'], 'before' => 'Anchor[break]' })
         end
-      else
-        puts '{}'
-      end
-
-      puts '#NAME'
-      puts hash[:name].to_s
-
-      puts '#VERSION'
-      puts hash[:version].to_s
-
-      puts '#ENVIRONMENT'
-      puts hash['environment'].to_s
-
-      puts '#RESOURCES'
-      #hash['resources'].each do |key, value|
-      #  puts key
-      #end
-
-      #puts '#EDGES'
-      #puts hash['edges'].to_s
-
-      puts '#CLASSES'
-      puts hash['classes'].to_s
-
-      #puts hash.to_s
-
-      img.each do |resource|
-        resource[:notify] = []
-        resource[:subscribe] = []
-        if resource.type.downcase == 'package'
-          resource[:before] = []
-          #resource[:require] = [anchor]
-        elsif resource.type.downcase == 'yumrepo'
-          #resource[:before] = [anchor]
-          resource[:require] = []
-        end
-      end
-      img 
+      end 
+      tcat.finalize
+      transaction = tcat.apply()
+      tcat.resources
     end
 
     when_rendering :console do |value|
-      return "derp"
+      #return "derp"
       if value.nil? then
         "no matching resources found"
       else
         str = ''
         packages = []
         repos    = []
-	value.each do |resource|
-          if resource.type.downcase == 'package' then
+	    value.each do |resource|
+          if resource.type.to_s == 'Package' then
             packages.push(resource)
-          elsif resource.type.downcase == 'yumrepo' then
+            puts resource.type
+          elsif resource.type.to_s == 'Yumrepo' then
             repos.push(resource)
+            puts resource.type
+          else 
+            puts resource.type
           end
         end
 
