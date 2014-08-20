@@ -1,8 +1,8 @@
 # Select and show a list of resources of a given type.
 Puppet::Face.define(:partial, '0.0.1') do
   action :repo_build do
-    summary "Retrieve a catalog, filter it for resources like packages and repos, and create a local yum repository to serve"
-    arguments "<host>"
+    summary "Retrieve a catalog for a given role, filter it for resources like packages and repos, and create a local yum repository to serve"
+    arguments "<role>"
 
     returns <<-'EOT'
       "Applies a catalog and doesn't return anything of note"
@@ -10,13 +10,13 @@ Puppet::Face.define(:partial, '0.0.1') do
     option "--repo_path REPO_PATH" do
       summary "The path to place package files in"
     end
-    when_invoked do |host, options|
+    when_invoked do |role, options|
       facts = Puppet::Face[:facts, :current].find('node')
-      facts.values['role'] = 'all'
+      facts.values['role'] = role
 
-      node = Puppet::Node.new('build1', options={:parameters => facts.values})
+      node = Puppet::Node.new('role', options={:parameters => facts.values})
 
-      catalog = Puppet::Resource::Catalog.indirection.find('build1', options = {:use_node => node})
+      catalog = Puppet::Resource::Catalog.indirection.find('role', options = {:use_node => node})
 
       if options.has_key? :repo_path
         path = options[:repo_path]

@@ -1,7 +1,7 @@
 puppet-partial
 ==============
 
-Puppet Face for building partial catalogs and applying them
+Puppet Face for building useful partial catalogs and applying them
 
 Version 0.0.1
 
@@ -10,12 +10,25 @@ Version 0.0.1
 The puppet-partial module is used to compile an existing puppet catalog and pull
 out the parts that belong in golden images.
 
+It can also create a local repo of all packages + package deps that are needed to
+install a given catalog.
+
 ## Usage
 
-the face is called partial, and the only action at the moment is image_build:
+the face is called partial, and the action for golden images is image_build:
 
     puppet partial image_build <nodename>
-    
+
+the action for building a repo is
+
+    puppet partial repo_build <role_name>
+
+where role name will set a fact 'role' => <role_name> that can be used to select
+which role to build for. To get the most out of this now, create a role that simply
+includes every profile, so that all packages are downloaded.
+
+TODO: add support for a list of roles, so that we don't have to make an all role.
+
 ## Limitations
 
 All the image_build action currently does is pull out resources of the type 'package' and 'yumrepo'
