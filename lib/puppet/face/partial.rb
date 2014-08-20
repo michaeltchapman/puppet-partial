@@ -1,11 +1,59 @@
 # Select and show a list of resources of a given type.
 Puppet::Face.define(:partial, '0.0.1') do
+  action :repo_build do
+    summary "Retrieve a catalog, filter it for resources like packages and repos, and create a local yum repository to serve"
+    arguments "<host>"
+
+    returns <<-'EOT'
+      "Applies a catalog and doesn't return anything of note"
+    EOT
+    option "--repo_path REPO_PATH" do
+      summary "The path to place package files in"
+    end
+    when_invoked do |host, options|
+      facts = Puppet::Face[:facts, :current].find('node')
+      facts.values['role'] = 'all'
+
+      node = Puppet::Node.new('build1', options={:parameters => facts.values})
+
+      catalog = Puppet::Resource::Catalog.indirection.find('build1', options = {:use_node => node})
+
+      if options.has_key? :repo_path
+        path = options[:repo_path]
+      else
+        path = '/usr/share/yumrepo'
+      end
+
+
+      tcat = Puppet::Resource::Catalog.new('test', Puppet::Node::Environment.new('production'))
+      tcat.make_default_resources
+      anchor = tcat.create_resource('anchor', {'title' => 'start'})
+      anchor = tcat.create_resource('anchor', {'title' => 'repos'})
+
+      tcat.create_resource('file', {'title' => path, 'ensure' => 'directory', 'before' => 'Package[yum-utils]' })
+      tcat.create_resource('package', {'title' => 'yum-utils', 'ensure' => 'installed', 'require' => 'Anchor[repos]' })
+
+      catalog.resources.each do |res|
+        if res.type.downcase == 'package' then
+          tcat.create_resource('exec', { 'title' => "exec_#{res.title}", 'command' => "/usr/bin/yumdownloader #{res['name']} --destdir=#{path} --resolve", 'require' => 'Package[yum-utils]'})
+        elsif res.type.downcase == 'yumrepo'
+          newres = res.to_hash
+          newres[:before] = 'Anchor[repos]'
+          newres.delete(:notify)
+          newres.delete(:require)
+          newres[:title] = res.title
+          puts newres
+          tcat.create_resource('yumrepo', newres)
+        end
+      end
+      tcat.finalize
+      transaction = tcat.apply()
+      return
+    end
+  end
+
   action :image_build do
     summary "Retrieve a catalog, filter it for image building resources like packages and repos, and apply it"
-
-    option '--outfile OUTFILE' do
-      summary 'Where to place a puppet manifest that can be applied'
-    end
 
     arguments "<host>"
 
@@ -41,10 +89,11 @@ Puppet::Face.define(:partial, '0.0.1') do
         elsif res.type.downcase == 'yumrepo'
           tcat.create_resource('yumrepo', {'title' => res.title, 'name' => res['name'], 'baseurl' => res['baseurl'], 'before' => 'Anchor[break]' })
         end
-      end 
+      end
       tcat.finalize
       transaction = tcat.apply()
-      return 
+      return
     end
+
   end
 end
