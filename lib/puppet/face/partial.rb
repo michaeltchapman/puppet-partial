@@ -35,7 +35,7 @@ Puppet::Face.define(:partial, '0.0.1') do
 
       catalog.resources.each do |res|
         if res.type.downcase == 'package' then
-          tcat.create_resource('exec', { 'title' => "exec_#{res.title}", 'path' => '/usr/bin:/bin:/usr/sbin:/sbin', 'timeout' => 0, 'command' => "yum install --downloadonly --downloaddir=#{path} #{res.name}", 'require' => 'Package[yum-utils]'})
+          tcat.create_resource('exec', { 'title' => "exec_#{res.title}", 'path' => '/usr/bin:/bin:/usr/sbin:/sbin', 'timeout' => 0, 'command' => "repotrack -a x86_64 -p #{path} #{res['name']}", 'require' => 'Package[yum-utils]'})
         elsif res.type.downcase == 'yumrepo'
           newres = res.to_hash
           newres[:before] = 'Anchor[repos]'
