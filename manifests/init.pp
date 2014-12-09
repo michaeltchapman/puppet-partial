@@ -1,13 +1,16 @@
 class partial(
-  $build_server_name = 'build.domain.name',
+  $server_name = 'build.domain.name',
   $repo_path         = '/usr/share/yumrepo'
 )
 {
   include ::apache
+  include ::apache::mod::autoindex
+  include ::apache::mod::dir
 
-  apache::vhost { "${build_server_name}":
-    port    => '80',
-    docroot => $repo_path
+  apache::vhost { "${server_name}":
+    port           => '80',
+    docroot        => $repo_path',
+    directoryindex => 'index.html'
   }
 
   firewall { '100 accept all tcp 80 for apache':
