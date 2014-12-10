@@ -1,5 +1,5 @@
 class partial(
-  $server_name = $::fqdn
+  $server_name = $::fqdn,
   $repo_path   = '/usr/share/yumrepo'
 )
 {
@@ -9,8 +9,8 @@ class partial(
 
   apache::vhost { "${server_name}":
     port           => '80',
-    docroot        => $repo_path',
-    directoryindex => index.html'
+    docroot        => $repo_path,
+    directoryindex => 'index.html'
   }
 
   firewall { '100 accept all tcp 80 for apache':
