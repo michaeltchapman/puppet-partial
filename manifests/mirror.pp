@@ -11,7 +11,7 @@ class partial::mirror(
   # pull from a local copy to speed things up if possible
   if $upstream_cache {
     exec { 'pull_from_upstream_cache':
-      command => "cd ${repo_path}; wget -r -nH --cut-dirs=2 --no-parent --reject=\"index.html*\" http://${upstram_cache}",
+      command => "cd ${repo_path}; wget -r -nH --cut-dirs=2 --no-parent --reject=\"index.html*\" http://${upstream_cache}",
       path    => ['/usr/bin', '/usr/local/bin','/usr/sbin','/sbin' ],
       before  => Exec['build_repo'],
       timeout => 0,
