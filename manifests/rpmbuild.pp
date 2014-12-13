@@ -5,11 +5,18 @@ define partial::rpmbuild(
   $repo_revision = 'master',
   $build_environment = 'HOME=/tmp',
   $mirror_path = '/usr/share/yumrepo',
+  $install_rpm = false,
 )
 {
 
   notice($title)
   notice($name)
+
+  if $install_rpm {
+    $install_string = 'yum install -y /tmp/*.rpm; '
+  } else {
+    $install_string = ''
+  }
 
   vcsrepo { "/tmp/${title}":
     ensure   => present,
@@ -20,7 +27,7 @@ define partial::rpmbuild(
   exec { "build_rpm_${title}":
     path          => '/usr/bin:/bin:/usr/sbin:/sbin',
     provider      => shell,
-    command       => "cd /tmp; ${build_command}; cp /tmp/*.rpm ${mirror_path}",
+    command       => "cd /tmp; ${build_command}; cp /tmp/*.rpm ${mirror_path}; ${install_string}",
     refreshonly   => true,
     environment   => $build_environment
   }
