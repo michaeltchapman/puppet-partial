@@ -94,6 +94,82 @@ Puppet::Face.define(:partial, '0.0.1') do
       transaction = tcat.apply()
       return
     end
-
   end
+
+  action :package_list do
+    summary "Retrieve a catalog, filter packages list and create a list."
+
+    arguments "<hosts>"
+
+    returns <<-'EOT'
+      A list containing the package resources.
+    EOT
+
+    description <<-'EOT'
+    EOT
+
+    notes <<-'NOTES'
+    NOTES
+
+    examples <<-'EOT'
+      Compile a catalog and select the package resources managed by Puppet on one node.
+
+      $ puppet partial package_list somenode.magpie.lan
+    EOT
+
+    when_invoked do |host, options|
+      catalog = Puppet::Resource::Catalog.indirection.find(host)
+
+      tcat = Puppet::Resource::Catalog.new('test', Puppet::Node::Environment.new('production'))
+      tcat.make_default_resources
+
+      catalog.resources.each do |res|
+        if res.type.downcase == 'package' then
+          puts "#{res['name']}"
+        end
+      end
+      return
+    end
+  end
+
+  action :service_list do
+    summary "Retrieve a catalog, filter services list and create a list."
+
+    arguments "<hosts>"
+
+    option "--output_file <filename>" do
+      summary "The path to place service list in"
+    end
+
+    returns <<-'EOT'
+      A list containing the service resources.
+    EOT
+
+    description <<-'EOT'
+    EOT
+
+    notes <<-'NOTES'
+    NOTES
+
+    examples <<-'EOT'
+      Compile a catalog and select the service resources managed by Puppet on one node/
+
+      $ puppet partial service_list somenode.magpie.lan
+    EOT
+
+    when_invoked do |host, options|
+      catalog = Puppet::Resource::Catalog.indirection.find(host)
+
+      tcat = Puppet::Resource::Catalog.new('test', Puppet::Node::Environment.new('production'))
+      tcat.make_default_resources
+
+      catalog.resources.each do |res|
+        if res.type.downcase == 'service' then
+          puts "#{res['name']}"
+        end
+      end
+      return
+    end
+  end
+
 end
