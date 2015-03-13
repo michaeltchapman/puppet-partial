@@ -101,6 +101,10 @@ Puppet::Face.define(:partial, '0.0.1') do
 
     arguments "<hosts>"
 
+    option "--tag <tag>" do
+      summary "List the resources on a specific tag"
+    end
+
     returns <<-'EOT'
       A list containing the package resources.
     EOT
@@ -115,6 +119,7 @@ Puppet::Face.define(:partial, '0.0.1') do
       Compile a catalog and select the package resources managed by Puppet on one node.
 
       $ puppet partial package_list somenode.magpie.lan
+      $ puppet partial package_list --tag neutron::server somenode.magpie.lan
     EOT
 
     when_invoked do |host, options|
@@ -124,8 +129,15 @@ Puppet::Face.define(:partial, '0.0.1') do
       tcat.make_default_resources
 
       catalog.resources.each do |res|
-        if res.type.downcase == 'package' then
-          puts "#{res['name']}"
+        if options.has_key? :tag
+          tag = options[:tag]
+          if res.type.downcase == 'package' and res.tags.include?(tag) then
+            puts "#{res['name']}"
+          end
+        else
+          if res.type.downcase == 'package' then
+            puts "#{res['name']}"
+          end
         end
       end
       return
@@ -137,8 +149,8 @@ Puppet::Face.define(:partial, '0.0.1') do
 
     arguments "<hosts>"
 
-    option "--output_file <filename>" do
-      summary "The path to place service list in"
+    option "--tag <tag>" do
+      summary "List the resources on a specific tag"
     end
 
     returns <<-'EOT'
@@ -155,6 +167,7 @@ Puppet::Face.define(:partial, '0.0.1') do
       Compile a catalog and select the service resources managed by Puppet on one node/
 
       $ puppet partial service_list somenode.magpie.lan
+      $ puppet partial service_list --tag neutron::server somenode.magpie.lan
     EOT
 
     when_invoked do |host, options|
@@ -164,8 +177,15 @@ Puppet::Face.define(:partial, '0.0.1') do
       tcat.make_default_resources
 
       catalog.resources.each do |res|
-        if res.type.downcase == 'service' then
-          puts "#{res['name']}"
+        if options.has_key? :tag
+          tag = options[:tag]
+          if res.type.downcase == 'service' and res.tags.include?(tag) then
+            puts "#{res['name']}"
+          end
+        else
+          if res.type.downcase == 'service' then
+            puts "#{res['name']}"
+          end
         end
       end
       return
