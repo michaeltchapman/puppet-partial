@@ -24,10 +24,12 @@ the action for building a repo is
     puppet partial repo_build <role_name>
 
 the action of listing packages managed by a catalog:
-    puppet partial package_list <nodename>
+    puppet partial resource_list --resource package <nodename>
 
 the action of listing services managed by a catalog:
-    puppet partial service_list <nodename>
+    puppet partial resource_list --resource service <nodename>
+
+You can use resource_list to list any type of Puppet resource.
 
 where role name will set a fact 'role' => <role_name> that can be used to select
 which role to build for. To get the most out of this now, create a role that simply
