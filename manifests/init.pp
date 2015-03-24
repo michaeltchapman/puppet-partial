@@ -28,7 +28,7 @@ class partial(
   } ->
 
   exec { 'create_yum_repo':
-    command => "rm -rf ${repopath}/repodata; createrepo ${repo_path}",
+    command => "rm -rf ${repo_path}/repodata; createrepo ${repo_path}",
     path    => ['/usr/bin', '/usr/local/bin','/usr/sbin','/sbin' ],
     timeout => 0,
     require => Package['createrepo']
