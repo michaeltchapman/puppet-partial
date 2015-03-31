@@ -96,7 +96,7 @@ Puppet::Face.define(:partial, '0.0.1') do
     end
   end
 
-  action :source_list do
+  action :resource_list do
     summary "Retrieve a catalog, filter resource list and create a list."
 
     arguments "<hosts>"
