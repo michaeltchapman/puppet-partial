@@ -10,6 +10,10 @@ Puppet::Face.define(:partial, '0.0.1') do
     option "--repo_path REPO_PATH" do
       summary "The path to place package files in"
     end
+
+    option "--installed INSTALLED" do
+      summary "Whether to also load installed packages from this node into the mirror"
+    end
     when_invoked do |role, options|
       facts = Puppet::Face[:facts, :current].find('node')
       facts.values['role'] = role
@@ -24,6 +28,11 @@ Puppet::Face.define(:partial, '0.0.1') do
         path = '/usr/share/yumrepo'
       end
 
+      if options.has_key? :installed
+        installed = options[:installed]
+      else
+        installed = true
+      end
 
       tcat = Puppet::Resource::Catalog.new('test', Puppet::Node::Environment.new('production'))
       tcat.make_default_resources

@@ -1,7 +1,8 @@
 class partial::mirror(
   $all_role          = 'all',
   $repo_path         = '/usr/share/yumrepo',
-  $upstream_cache    = false
+  $upstream_cache    = false,
+  $mirror_installed  = true
 )
 {
   package { 'wget':
@@ -26,6 +27,16 @@ class partial::mirror(
     command => "puppet partial repo_build --repo_path=${repo_path} all",
     path    => ['/usr/bin', '/usr/local/bin','/usr/sbin','/sbin' ],
     timeout => 0
+  }
+
+  if $mirror_installed {
+    exec { 'build_installed_repo':
+      command => "ret=1; for i in `puppet resource package | grep package | cut -d \"'\" -f 2`; do repotrack -a x86_64 -p ${repo_path} \$i; done;",
+      path    => ['/usr/bin', '/usr/local/bin','/usr/sbin','/sbin' ],
+      timeout => 0,
+      provider => shell
+    }
+    Exec['build_installed_repo'] ~> Exec<| title == 'create_yum_repo' |>
   }
 
   Exec['build_repo'] ~> Exec<| title == 'create_yum_repo' |>
