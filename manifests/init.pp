@@ -27,10 +27,18 @@ class partial(
     ensure => directory 
   } ->
 
+  exec { 'vagrant_rpm_cache':
+    command => "bash /vagrant/provision/rpmcache.sh /vagrant/rpmcache ${repo_path}",
+    onlyif  => "file -f /vagrant/provision/rpmcache.sh && file -f /vagrant/rpmcache",
+    path    => ['/usr/bin', '/usr/local/bin','/usr/sbin','/sbin' ],
+    timeout => 0,
+    before  => Exec['create_yum_repo'],
+  }
+
   exec { 'create_yum_repo':
     command => "rm -rf ${repo_path}/repodata; createrepo ${repo_path}",
     path    => ['/usr/bin', '/usr/local/bin','/usr/sbin','/sbin' ],
     timeout => 0,
-    require => Package['createrepo']
+    require => [Package['createrepo'], File[$repo_path]]
   }
 }

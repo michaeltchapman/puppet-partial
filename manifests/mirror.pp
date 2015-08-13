@@ -22,6 +22,10 @@ class partial::mirror(
   }
 
   # this can take a very long time
+
+  Exec<| title == 'vagrant_rpm_cache' |> -> Exec <| title == 'build_repo' |>
+  Exec<| title == 'vagrant_rpm_cache' |> -> Exec <| title == 'build_installed_repo' |>
+
   Yumrepo<||> ->
   exec { 'build_repo':
     command => "puppet partial repo_build --repo_path=${repo_path} all",
